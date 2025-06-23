@@ -68,8 +68,8 @@ LinkedListNode* removeLinkedListTail(LinkedListNode* head) {
 }
 
 // Removes a node at the specified position from the linked list
-LinkedListNode* removeLinkedListNode(LinkedListNode* node) {
-    if (!node) {
+LinkedListNode* removeLinkedListNode(LinkedListNode* head, int position) {
+    if (!head) {
         fprintf(stderr, "List is empty\n");
         return NULL;
     }
