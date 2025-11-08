@@ -10,3 +10,5 @@ typedef struct {
 } TokenList;
 
 char* evaluate_expression(char* expression);
+
+int get_variable_value(const char* varname);

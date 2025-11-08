@@ -14,6 +14,14 @@ typedef struct {
     int count;
 } TokenList;
 
+typedef struct {
+    char* name;
+    int value;
+} Variable;
+
+extern Variable variables[MAX_TOKENS];
+extern int var_count;
+
 // -------------------- TOKENIZATION --------------------
 
 int is_operator(const char* token) {
@@ -35,24 +43,46 @@ int is_right_associative(const char* op) {
     return strcmp(op, "**") == 0;
 }
 
+// Look up the value of a variable
+int get_variable_value(const char* var_name) {
+    for (int i = 0; i < var_count; i++) {
+        if (strcmp(variables[i].name, var_name) == 0) {
+            return variables[i].value;
+        }
+    }
+    printf("Error: Undefined variable '%s'. Treating it as 0.\n", var_name);
+    return 0;
+}
+
+// Tokenize expression without requiring spaces
 TokenList tokenize_expr(char* expr) {
     TokenList list = {.count = 0};
     int i = 0;
+    
     while (expr[i] != '\0') {
         if (isspace(expr[i])) {
-            i++;
+            i++;  // Skip spaces
             continue;
         }
 
         char token[MAX_TOKEN_LEN] = {0};
         int j = 0;
 
+        // Handle numbers (digits)
         if (isdigit(expr[i])) {
             while (isdigit(expr[i])) token[j++] = expr[i++];
-        } else if (expr[i] == '*' && expr[i + 1] == '*') {
-            token[j++] = '*'; token[j++] = '*'; i += 2;
-        } else if (strchr("+-*/()", expr[i])) {
+        }
+        // Handle variable (alphabetic characters)
+        else if (isalpha(expr[i])) {
+            while (isalpha(expr[i])) token[j++] = expr[i++];
+        }
+        // Handle operators (+, -, *, /, **)
+        else if (expr[i] == '+' || expr[i] == '-' || expr[i] == '*' || expr[i] == '/' || expr[i] == '(' || expr[i] == ')') {
             token[j++] = expr[i++];
+        }
+        // Handle the "**" operator
+        else if (expr[i] == '*' && expr[i + 1] == '*') {
+            token[j++] = '*'; token[j++] = '*'; i += 2;
         } else {
             printf("Unknown character: %c\n", expr[i]);
             exit(1);
@@ -74,7 +104,7 @@ TokenList infix_to_postfix(TokenList input) {
     for (int i = 0; i < input.count; ++i) {
         char* token = input.tokens[i];
 
-        if (isdigit(token[0])) {
+        if (isdigit(token[0]) || isalpha(token[0])) {
             output.tokens[output.count++] = strdup(token);
         } else if (is_operator(token)) {
             while (top >= 0 &&
@@ -119,9 +149,17 @@ char* evaluate_expression(char* expression) {
     for (int i = 0; i < postfix.count; ++i) {
         char* token = postfix.tokens[i];
 
+        // Check if the token is a number
         if (isdigit(token[0])) {
             stack[++top] = atoi(token);
-        } else if (is_operator(token)) {
+        }
+        // Check if the token is a variable
+        else if (isalpha(token[0])) {
+            int value = get_variable_value(token); // Get the variable's value
+            stack[++top] = value;
+        }
+        // Check if the token is an operator
+        else if (is_operator(token)) {
             if (top < 1) {
                 printf("Evaluation error: too few operands.\n");
                 exit(1);

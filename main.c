@@ -4,50 +4,64 @@
 #include "dependencies/parser/parser.h"
 
 int main(int argc, char* argv[]) {
-
     if (argc != 2) {
-      char input[256];
-      printf("$");
-      while(fgets(input, sizeof(input), stdin)) {
-        int line_count = 0;
-        char** tokens = tokenize_string(input, " ", &line_count);
-        parse_tokens(tokens);
-        free(tokens);
-        printf("$");
-      }
+        // Interactive mode
+        char input[256];
+        printf("$ ");
+        while (fgets(input, sizeof(input), stdin)) {
+            int line_count = 0;
+            // Tokenize the input string
+            char** tokens = tokenize_string(input, " ", &line_count);
+
+            // Parse the tokens using the updated parser
+            parse_tokens(tokens);
+
+            // Free the memory allocated for tokens
+            free(tokens);
+
+            // Print the prompt again
+            printf("$ ");
+        }
+    } else {
+        // File mode
+        char* filepath = argv[1];
+        char* delim = "\n";
+        int count;
+        
+        // Tokenize the file content into lines
+        char** lines = tokenize_file(filepath, delim, &count);
+        
+        if (lines == NULL) {
+            printf("Error: Failed to tokenize input file.\n");
+            return 1;
+        }
+
+        // Loop through each line in the file
+        for (int i = 0; i < count; i++) {
+            char* line = lines[i];
+            int line_count = 0;
+            // Tokenize the line into individual tokens
+            char** tokens = tokenize_string(line, " ", &line_count);
+
+            if (tokens == NULL) {
+                printf("Error: Failed to tokenize line %d.\n", i + 1);
+                continue;
+            }
+
+            // Parse the tokens using the updated parser
+            parse_tokens(tokens);
+
+            // Free the memory allocated for tokens
+            free(tokens);
+        }
+
+        // Free each line's memory
+        for (int i = 0; i < count; i++) {
+            free(lines[i]);
+        }
+
+        // Free the lines array
+        free(lines);
     }
-  
-    char* filepath = argv[1];
-    char* delim = "\n";
-    int count;
-    char** lines = tokenize_file(filepath, delim, &count);
-  
-    if (lines == NULL) {
-      printf("Error: Failed to tokenize input file.\n");
-      return 1;
-    }
-  
-    for (int i = 0; i < count; i++) {
-      char* line = lines[i];
-      char* line_delim = " ";
-      int line_count = 0;
-      char** tokens = tokenize_string(line, line_delim, &line_count);
-  
-      if (tokens == NULL) {
-        printf("Error: Failed to tokenize line %d.\n", i + 1);
-        continue;
-      }
-        //   printf("Line %d has %d tokens:\n", i + 1, line_count);
-        //   for (int j = 0; j < line_count; j++) {
-        //       printf("Token[%d]: %s\n", j, tokens[j]);
-        //   }
-      parse_tokens(tokens);
-      free(tokens);
-    }
-    for (int i = 0; i < count; i++) {
-      free(lines[i]); // Free each line
-    }
-  
-    free(lines); // Free the lines array
     return 0;
 }
