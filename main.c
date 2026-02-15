@@ -1,67 +1,35 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include "dependencies/tokenizer/tokenizer.h"
-#include "dependencies/parser/parser.h"
+#include <string.h>
+#include "run/run.h"
+#include "src/variableStore/variableStore.h"
+
+void runMyLang(int argc, char* argv[]) {
+    init_variable_store();
+    if (argc != 2) {
+        run_interactive_mode();
+    } else {
+        run_file_mode(argv[1]);
+    }
+    free_variable_store();
+}
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        // Interactive mode
-        char input[256];
-        printf("$ ");
-        while (fgets(input, sizeof(input), stdin)) {
-            int line_count = 0;
-            // Tokenize the input string
-            char** tokens = tokenize_string(input, " ", &line_count);
 
-            // Parse the tokens using the updated parser
-            parse_tokens(tokens);
-
-            // Free the memory allocated for tokens
-            free(tokens);
-
-            // Print the prompt again
-            printf("$ ");
+    if (argc >= 2 && (strlen(argv[1]) > 1 && argv[1][0]=='-')) {
+        if (strcmp(argv[1],"-h") || strcmp(argv[1],"--help")) {
+        printf(
+            "Welcome to MyLang, a super simple language written in C. A work in progress.\n"
+            "Usage: ./mylang [option | file]\n"
+            "Examples:\n"
+            "\t./mylang\t\tOpens interactive MyLang shell\n"
+            "\t./mylang -h\t\tOpens this help menu\n"
+            "\t./mylang /path/to/file\tRuns the interpreter on the provided file\n"
+            "Options:\n"
+            "\t-h | --help:\tdisplays this help menu\n"
+        );
         }
-    } else {
-        // File mode
-        char* filepath = argv[1];
-        char* delim = "\n";
-        int count;
-        
-        // Tokenize the file content into lines
-        char** lines = tokenize_file(filepath, delim, &count);
-        
-        if (lines == NULL) {
-            printf("Error: Failed to tokenize input file.\n");
-            return 1;
-        }
-
-        // Loop through each line in the file
-        for (int i = 0; i < count; i++) {
-            char* line = lines[i];
-            int line_count = 0;
-            // Tokenize the line into individual tokens
-            char** tokens = tokenize_string(line, " ", &line_count);
-
-            if (tokens == NULL) {
-                printf("Error: Failed to tokenize line %d.\n", i + 1);
-                continue;
-            }
-
-            // Parse the tokens using the updated parser
-            parse_tokens(tokens);
-
-            // Free the memory allocated for tokens
-            free(tokens);
-        }
-
-        // Free each line's memory
-        for (int i = 0; i < count; i++) {
-            free(lines[i]);
-        }
-
-        // Free the lines array
-        free(lines);
     }
+    else runMyLang(argc, argv);
+    fflush(stdout);
     return 0;
 }

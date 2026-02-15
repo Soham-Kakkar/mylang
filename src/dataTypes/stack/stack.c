@@ -3,10 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct Stack {
-  LinkedListNode* top;
-};
-
 // Creates a new stack
 Stack* createStack() {
     Stack* stack = malloc(sizeof(Stack));
@@ -34,11 +30,10 @@ void* popStack(Stack* stack) {
         fprintf(stderr, "Stack underflow\n");
         return NULL;
     }
-    void* data = stack->top->data;
     LinkedListNode* to_remove = stack->top;
-    stack->top = stack->top->next; // Update top pointer
-    
-    if (to_remove->owns_data) free(to_remove->data); // Free data if owned
+    void* data = to_remove->data;
+
+    stack->top = to_remove->next;
     free(to_remove); // Free node
     return data;
 }

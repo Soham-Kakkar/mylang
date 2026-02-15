@@ -2,8 +2,11 @@
 #define STACK_H
 
 #include <stdbool.h>
+#include "../LinkedList/linkedList.h"
 
-typedef struct Stack Stack;
+typedef struct Stack {
+   LinkedListNode* top;   
+} Stack;
 
 // Creation/destruction
 Stack* createStack();
